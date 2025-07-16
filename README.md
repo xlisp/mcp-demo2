@@ -212,3 +212,127 @@ database_query("SELECT COUNT(*) as total_files FROM files_info")
 ## 许可证
 
 MIT License - 自由使用和修改
+
+---
+
+### 高级用法: https://github.com/modelcontextprotocol/python-sdk
+
+```python
+"""
+Run from the repository root:
+uv run examples/snippets/servers/lowlevel/basic.py
+"""
+
+import asyncio
+
+import mcp.server.stdio
+import mcp.types as types
+from mcp.server.lowlevel import NotificationOptions, Server
+from mcp.server.models import InitializationOptions
+
+# Create a server instance
+server = Server("example-server")
+
+
+@server.list_prompts()
+async def handle_list_prompts() -> list[types.Prompt]:
+    """List available prompts."""
+    return [
+        types.Prompt(
+            name="example-prompt",
+            description="An example prompt template",
+            arguments=[types.PromptArgument(name="arg1", description="Example argument", required=True)],
+        )
+    ]
+
+
+@server.get_prompt()
+async def handle_get_prompt(name: str, arguments: dict[str, str] | None) -> types.GetPromptResult:
+    """Get a specific prompt by name."""
+    if name != "example-prompt":
+        raise ValueError(f"Unknown prompt: {name}")
+
+    arg1_value = (arguments or {}).get("arg1", "default")
+
+    return types.GetPromptResult(
+        description="Example prompt",
+        messages=[
+            types.PromptMessage(
+                role="user",
+                content=types.TextContent(type="text", text=f"Example prompt text with argument: {arg1_value}"),
+            )
+        ],
+    )
+
+
+async def run():
+    """Run the basic low-level server."""
+    async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
+        await server.run(
+            read_stream,
+            write_stream,
+            InitializationOptions(
+                server_name="example",
+                server_version="0.1.0",
+                capabilities=server.get_capabilities(
+                    notification_options=NotificationOptions(),
+                    experimental_capabilities={},
+                ),
+            ),
+        )
+
+
+if __name__ == "__main__":
+    asyncio.run(run())
+```
+
+### FastMCP 
+
+```python
+"""
+FastMCP quickstart example.
+
+cd to the `examples/snippets/clients` directory and run:
+    uv run server fastmcp_quickstart stdio
+"""
+
+from mcp.server.fastmcp import FastMCP
+
+# Create an MCP server
+mcp = FastMCP("Demo")
+
+
+# Add an addition tool
+@mcp.tool()
+def add(a: int, b: int) -> int:
+    """Add two numbers"""
+    return a + b
+
+
+# Add a dynamic greeting resource
+@mcp.resource("greeting://{name}")
+def get_greeting(name: str) -> str:
+    """Get a personalized greeting"""
+    return f"Hello, {name}!"
+
+
+# Add a prompt
+@mcp.prompt()
+def greet_user(name: str, style: str = "friendly") -> str:
+    """Generate a greeting prompt"""
+    styles = {
+        "friendly": "Please write a warm, friendly greeting",
+        "formal": "Please write a formal, professional greeting",
+        "casual": "Please write a casual, relaxed greeting",
+    }
+
+    return f"{styles.get(style, styles['friendly'])} for someone named {name}."
+
+```
+
+### 其他资料参考：
+
+https://github.com/liaokongVFX/MCP-Chinese-Getting-Started-Guide
+
+https://zhuanlan.zhihu.com/p/29001189476
+
