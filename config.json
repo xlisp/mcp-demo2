@@ -1,0 +1,28 @@
+{
+  "server": {
+    "name": "multi-function-mcp",
+    "version": "1.0.0",
+    "description": "MCP多功能应用：文件访问、网络爬虫、数据库查询"
+  },
+  "database": {
+    "type": "sqlite",
+    "filename": "mcp_data.db",
+    "auto_init": true
+  },
+  "scraping": {
+    "timeout": 30,
+    "max_content_length": 5000,
+    "user_agent": "MCP-Multi-Function-App/1.0.0",
+    "allowed_domains": []
+  },
+  "file_operations": {
+    "allowed_extensions": [".txt", ".json", ".csv", ".md", ".py", ".js", ".html", ".css"],
+    "max_file_size": 10485760,
+    "encoding": "utf-8"
+  },
+  "security": {
+    "enable_file_restrictions": true,
+    "restricted_paths": ["/etc", "/sys", "/proc", "/dev"],
+    "allow_only_select_queries": true
+  }
+}
